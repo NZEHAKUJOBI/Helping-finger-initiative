@@ -1,0 +1,113 @@
+/**
+ * Domain types — the single source of truth for the shape of site content.
+ * No React, no framework imports: these can be reused by a CMS adapter later.
+ */
+
+export type IconName =
+  | "heart"
+  | "hand"
+  | "users"
+  | "book"
+  | "health"
+  | "wheat"
+  | "shield"
+  | "community"
+  | "scale"
+  | "star"
+  | "handshake"
+  | "megaphone"
+  | "gift"
+  | "phone"
+  | "mail"
+  | "map"
+  | "arrow-right"
+  | "check";
+
+export interface ContactInfo {
+  phones: string[];
+  email?: string;
+  address: string[];
+  socials: SocialLink[];
+}
+
+export interface SocialLink {
+  platform: "facebook" | "instagram" | "x" | "linkedin" | "youtube" | "whatsapp";
+  url: string;
+}
+
+export interface SiteConfig {
+  name: string;
+  shortName: string;
+  tagline: string;
+  /** Tagline used on the official letterhead. */
+  letterheadTagline: string;
+  description: string;
+  url: string;
+  contact: ContactInfo;
+}
+
+export interface NavItem {
+  label: string;
+  href: string;
+}
+
+export interface Hero {
+  eyebrow: string;
+  title: string;
+  subtitle: string;
+  belief: string;
+}
+
+export interface CoreValue {
+  title: string;
+  description: string;
+  icon: IconName;
+}
+
+export interface Programme {
+  slug: string;
+  letter: string;
+  title: string;
+  summary: string;
+  icon: IconName;
+  /** Longer copy for the programme detail page. */
+  details: string[];
+}
+
+export interface ApproachStep {
+  step: number;
+  title: string;
+  description: string;
+}
+
+export interface Beneficiary {
+  label: string;
+  icon: IconName;
+}
+
+/** Discriminated union: every way someone can get involved, each with its own route. */
+export type InvolvementKind = "donate" | "volunteer" | "partner" | "share";
+
+export interface InvolvementOption {
+  kind: InvolvementKind;
+  title: string;
+  description: string;
+  cta: string;
+  href: string;
+  icon: IconName;
+}
+
+export interface GovernanceBody {
+  title: string;
+  description: string;
+}
+
+export interface AboutContent {
+  intro: string[];
+  vision: string;
+  mission: string;
+  objectives: string[];
+  commitment: string[];
+  governance: GovernanceBody[];
+  accountability: string[];
+}
