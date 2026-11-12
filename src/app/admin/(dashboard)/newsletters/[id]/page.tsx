@@ -8,6 +8,7 @@ import { DeleteNewsletterButton } from "@/features/admin/newsletter/DeleteNewsle
 import { NewsletterEditor } from "@/features/admin/newsletter/NewsletterEditor";
 import { NewsletterPhotoCard } from "@/features/admin/newsletter/NewsletterPhotoCard";
 import { requireAdmin } from "@/lib/auth/session";
+import { useBlobStorage } from "@/lib/storage";
 import { coverOf, newsletterRepo } from "@/lib/newsletter";
 
 export const metadata: Metadata = { title: "Edit newsletter" };
@@ -53,7 +54,7 @@ export default async function EditNewsletterPage({ params }: PageProps<"/admin/n
           The cover photo leads the newsletter and shows on the home page. Upload up to 30 photos per newsletter.
         </p>
 
-        <Uploader action={uploadNewsletterPhotos} withCategory={false}>
+        <Uploader action={uploadNewsletterPhotos} withCategory={false} direct={useBlobStorage}>
           <input type="hidden" name="id" value={n.id} />
           <label className="flex h-11 items-center gap-2 text-sm font-medium text-brand-900">
             <input type="checkbox" name="addToGallery" defaultChecked className="size-4 accent-brand-700" />

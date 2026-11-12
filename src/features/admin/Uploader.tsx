@@ -1,5 +1,6 @@
 "use client";
 
+import { upload } from "@vercel/blob/client";
 import { useActionState, useId, useRef, useState, startTransition } from "react";
 import { uploadImages, type ActionResult } from "@/app/admin/actions";
 import { Button } from "@/components/ui/Button";
@@ -26,17 +27,41 @@ interface UploaderProps {
   action?: UploadAction;
   /** Show the gallery category picker (and require a choice). */
   withCategory?: boolean;
+  /**
+   * Send photos straight from the browser to Vercel Blob, then pass only their pathnames to `action`.
+   * Needed on Vercel, where a request to the site is limited to 4.5 MB.
+   */
+  direct?: boolean;
   /** Extra form controls (hidden ids, checkboxes) sent with the upload. */
   children?: React.ReactNode;
 }
 
-export function Uploader({ action = uploadImages, withCategory = true, children }: UploaderProps) {
+/** Uploads each photo to incoming/ in Vercel Blob and returns their pathnames. */
+async function uploadToBlob(files: File[], onProgress: (done: number) => void): Promise<string[]> {
+  let done = 0;
+  return Promise.all(
+    files.map(async (file) => {
+      const ext = file.name.match(/\.[a-z0-9]+$/i)?.[0]?.toLowerCase() ?? "";
+      const base = file.name.slice(0, file.name.length - ext.length).replace(/[^a-z0-9_-]+/gi, "-").slice(0, 60) || "photo";
+      const blob = await upload(`incoming/${base}${ext}`, file, {
+        access: "private",
+        handleUploadUrl: "/api/admin/upload",
+        contentType: file.type || "image/heic",
+      });
+      onProgress(++done);
+      return blob.pathname;
+    }),
+  );
+}
+
+export function Uploader({ action = uploadImages, withCategory = true, direct = false, children }: UploaderProps) {
   const inputId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const [items, setItems] = useState<Pending[]>([]);
   const [category, setCategory] = useState("");
   const [dragging, setDragging] = useState(false);
   const [clientError, setClientError] = useState<string | null>(null);
+  const [sent, setSent] = useState<number | null>(null);
 
   const clear = () => {
     items.forEach((i) => URL.revokeObjectURL(i.preview));
@@ -44,7 +69,20 @@ export function Uploader({ action = uploadImages, withCategory = true, children 
     if (inputRef.current) inputRef.current.value = "";
   };
 
-  const [state, formAction, pending] = useActionState(async (prev: ActionResult, fd: FormData) => {
+  const [state, formAction, pending] = useActionState(async (prev: ActionResult, fd: FormData): Promise<ActionResult> => {
+    if (direct) {
+      const files = fd.getAll("files") as File[];
+      fd.delete("files");
+      try {
+        setSent(0);
+        for (const pathname of await uploadToBlob(files, setSent)) fd.append("blobs", pathname);
+      } catch (error) {
+        console.error("[uploader] direct upload failed", error);
+        return { status: "error", message: "A photo could not be uploaded. Check your connection and try again." };
+      } finally {
+        setSent(null);
+      }
+    }
     const result = await action(prev, fd);
     if (result.status === "success") clear();
     return result;
@@ -190,7 +228,11 @@ export function Uploader({ action = uploadImages, withCategory = true, children 
         {children}
         <Button type="submit" disabled={pending || items.length === 0}>
           <Icon name="upload" className="size-4" />
-          {pending ? "Uploading…" : `Upload ${items.length || ""} photo${items.length === 1 ? "" : "s"}`}
+          {pending
+            ? sent !== null
+              ? `Sending ${sent} of ${items.length}…`
+              : "Saving…"
+            : `Upload ${items.length || ""} photo${items.length === 1 ? "" : "s"}`}
         </Button>
         {items.length > 0 && !pending && (
           <Button type="button" variant="ghost" onClick={clear}>

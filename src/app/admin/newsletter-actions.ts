@@ -6,9 +6,10 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { GALLERY_CATEGORIES, type GalleryCategory, type GalleryImage, type NewsletterPhoto } from "@/domain/types";
 import { requireAdmin } from "@/lib/auth/session";
-import { GALLERY_TAG, galleryRepo, imageStorage, ImageValidationError } from "@/lib/gallery";
+import { GALLERY_TAG, galleryRepo, imageStorage } from "@/lib/gallery";
 import { releaseImageIfUnused } from "@/lib/imageRefs";
 import { NEWSLETTER_TAG, newsletterRepo, slugify } from "@/lib/newsletter";
+import { readIncomingImages, uploadErrorMessage, type IncomingUpload } from "@/lib/uploads";
 import type { ActionResult } from "./actions";
 
 const MAX_FILES_PER_UPLOAD = 6;
@@ -123,22 +124,29 @@ export async function uploadNewsletterPhotos(_prev: ActionResult, formData: Form
   const id = idSchema.safeParse(formData.get("id"));
   if (!id.success) return { status: "error", message: "That newsletter no longer exists." };
 
-  const files = formData.getAll("files").filter((f): f is File => f instanceof File && f.size > 0);
   const captions = formData.getAll("captions").map(String);
   const addToGallery = formData.get("addToGallery") === "on";
 
-  const issue = await newsletterRepo.get(id.data);
-  if (!issue) return { status: "error", message: "That newsletter no longer exists." };
-  if (files.length === 0) return { status: "error", message: "Choose at least one photo." };
-  if (files.length > MAX_FILES_PER_UPLOAD) {
-    return { status: "error", message: `Upload up to ${MAX_FILES_PER_UPLOAD} photos at a time.` };
-  }
-  if (issue.photos.length + files.length > MAX_PHOTOS_PER_ISSUE) {
-    return { status: "error", message: `A newsletter can hold up to ${MAX_PHOTOS_PER_ISSUE} photos.` };
+  let incoming: IncomingUpload;
+  try {
+    incoming = await readIncomingImages(formData);
+  } catch (error) {
+    return { status: "error", message: uploadErrorMessage(error, "newsletter") };
   }
 
+  const files = incoming.images;
   const saved: NewsletterPhoto[] = [];
   try {
+    const issue = await newsletterRepo.get(id.data);
+    if (!issue) return { status: "error", message: "That newsletter no longer exists." };
+    if (files.length === 0) return { status: "error", message: "Choose at least one photo." };
+    if (files.length > MAX_FILES_PER_UPLOAD) {
+      return { status: "error", message: `Upload up to ${MAX_FILES_PER_UPLOAD} photos at a time.` };
+    }
+    if (issue.photos.length + files.length > MAX_PHOTOS_PER_ISSUE) {
+      return { status: "error", message: `A newsletter can hold up to ${MAX_PHOTOS_PER_ISSUE} photos.` };
+    }
+
     for (const [i, file] of files.entries()) {
       const caption = captionSchema.parse(captions[i] ?? "");
       const stored = await imageStorage.save(file);
@@ -162,13 +170,11 @@ export async function uploadNewsletterPhotos(_prev: ActionResult, formData: Form
       updateTag(GALLERY_TAG);
     }
   } catch (error) {
-    // Roll back files written before the failure.
+    // Roll back images written before the failure.
     await Promise.all(saved.map((s) => imageStorage.remove(s.id)));
-    if (error instanceof ImageValidationError || error instanceof z.ZodError) {
-      return { status: "error", message: error instanceof z.ZodError ? firstIssue(error) : error.message };
-    }
-    console.error("[newsletter] upload failed", error);
-    return { status: "error", message: "Upload failed. Please try again." };
+    return { status: "error", message: uploadErrorMessage(error, "newsletter") };
+  } finally {
+    await incoming.discard();
   }
 
   updateTag(NEWSLETTER_TAG);

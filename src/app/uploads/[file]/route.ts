@@ -9,7 +9,9 @@ export async function GET(_request: Request, ctx: RouteContext<"/uploads/[file]"
   return new Response(new Uint8Array(data), {
     headers: {
       "Content-Type": "image/webp",
+      // File names are unique per image, so browsers and the CDN (Vercel) may keep them forever.
       "Cache-Control": "public, max-age=31536000, immutable",
+      "CDN-Cache-Control": "public, max-age=31536000, immutable",
       "X-Content-Type-Options": "nosniff",
     },
   });

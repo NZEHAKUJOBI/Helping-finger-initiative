@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { AdminImageCard } from "@/features/admin/AdminImageCard";
 import { Uploader } from "@/features/admin/Uploader";
 import { requireAdmin } from "@/lib/auth/session";
+import { useBlobStorage } from "@/lib/storage";
 import { galleryRepo } from "@/lib/gallery";
 
 export const metadata: Metadata = { title: "Gallery" };
@@ -22,7 +23,7 @@ export default async function AdminGalleryPage() {
       </header>
 
       <section className="mt-8">
-        <Uploader />
+        <Uploader direct={useBlobStorage} />
       </section>
 
       <section className="mt-12">

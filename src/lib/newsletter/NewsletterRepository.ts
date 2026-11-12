@@ -1,7 +1,5 @@
-import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
-import path from "node:path";
 import type { Newsletter } from "@/domain/types";
-import { storageDir } from "@/lib/storage";
+import { createJsonStore, type JsonStore } from "@/lib/jsonStore";
 
 /** Repository for newsletter issues. Swap JsonNewsletterRepository for a database-backed one later. */
 export interface NewsletterRepository {
@@ -22,35 +20,32 @@ function byNewest(a: Newsletter, b: Newsletter) {
   return b.eventDate.localeCompare(a.eventDate) || kb.localeCompare(ka);
 }
 
-/**
- * Stores every issue in one JSON file next to the gallery index. Writes are serialised
- * in-process and written atomically (temp file + rename), like JsonGalleryRepository.
- */
+/** Stores every issue in one JSON document (local disk or Vercel Blob, see createJsonStore). */
 export class JsonNewsletterRepository implements NewsletterRepository {
-  private readonly file = path.join(storageDir, "newsletters.json");
-  private queue: Promise<unknown> = Promise.resolve();
+  private readonly store: JsonStore<Newsletter> = createJsonStore<Newsletter>("newsletters.json");
 
   async list(): Promise<Newsletter[]> {
-    return (await this.read()).toSorted(byNewest);
+    return (await this.store.read()).toSorted(byNewest);
   }
 
   async get(id: string) {
-    return (await this.read()).find((n) => n.id === id) ?? null;
+    return (await this.store.read()).find((n) => n.id === id) ?? null;
   }
 
   async getBySlug(slug: string) {
-    return (await this.read()).find((n) => n.slug === slug) ?? null;
+    return (await this.store.read()).find((n) => n.slug === slug) ?? null;
   }
 
   create(item: Newsletter) {
-    return this.mutate((items) => {
-      items.push(item);
+    return this.store.mutate((items) => {
+      items.push(structuredClone(item));
     });
   }
 
   async update(id: string, fn: (item: Newsletter) => void) {
     let updated: Newsletter | null = null;
-    await this.mutate((items) => {
+    await this.store.mutate((items) => {
+      updated = null; // reset on retry
       const item = items.find((n) => n.id === id);
       if (item) {
         fn(item);
@@ -63,32 +58,11 @@ export class JsonNewsletterRepository implements NewsletterRepository {
 
   async remove(id: string) {
     let removed: Newsletter | null = null;
-    await this.mutate((items) => {
+    await this.store.mutate((items) => {
+      removed = null;
       const index = items.findIndex((n) => n.id === id);
       if (index >= 0) removed = items.splice(index, 1)[0];
     });
     return removed;
-  }
-
-  private async read(): Promise<Newsletter[]> {
-    try {
-      return JSON.parse(await readFile(this.file, "utf8")) as Newsletter[];
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code === "ENOENT") return [];
-      throw error;
-    }
-  }
-
-  private mutate(fn: (items: Newsletter[]) => void): Promise<void> {
-    const run = this.queue.then(async () => {
-      const items = await this.read();
-      fn(items);
-      await mkdir(path.dirname(this.file), { recursive: true });
-      const tmp = `${this.file}.${process.pid}.tmp`;
-      await writeFile(tmp, JSON.stringify(items, null, 2));
-      await rename(tmp, this.file);
-    });
-    this.queue = run.catch(() => undefined);
-    return run;
   }
 }

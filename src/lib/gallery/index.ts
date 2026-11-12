@@ -1,13 +1,14 @@
 import { cacheLife, cacheTag } from "next/cache";
 import type { GalleryImage } from "@/domain/types";
 import { JsonGalleryRepository, type GalleryRepository } from "./GalleryRepository";
-import { LocalImageStorage, type ImageStorage } from "./ImageStorage";
+import { useBlobStorage } from "@/lib/storage";
+import { BlobImageStorage, LocalImageStorage, type ImageStorage } from "./ImageStorage";
 
 export const GALLERY_TAG = "gallery";
 
 /** Composition root: the one place that picks gallery adapters. */
 export const galleryRepo: GalleryRepository = new JsonGalleryRepository();
-export const imageStorage: ImageStorage = new LocalImageStorage();
+export const imageStorage: ImageStorage = useBlobStorage ? new BlobImageStorage() : new LocalImageStorage();
 
 /** Cached read for public pages; admin actions call updateTag(GALLERY_TAG) after changes. */
 export async function getGalleryImages(limit?: number): Promise<GalleryImage[]> {

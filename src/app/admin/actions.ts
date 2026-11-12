@@ -7,8 +7,9 @@ import { z } from "zod";
 import { GALLERY_CATEGORIES, type GalleryImage } from "@/domain/types";
 import { clearFailures, isLocked, recordFailure } from "@/lib/auth/rateLimit";
 import { checkPassword, createSession, destroySession, isAuthConfigured, requireAdmin } from "@/lib/auth/session";
-import { GALLERY_TAG, galleryRepo, imageStorage, ImageValidationError } from "@/lib/gallery";
+import { GALLERY_TAG, galleryRepo, imageStorage } from "@/lib/gallery";
 import { releaseImageIfUnused } from "@/lib/imageRefs";
+import { readIncomingImages, uploadErrorMessage, type IncomingUpload } from "@/lib/uploads";
 
 export interface ActionResult {
   status: "idle" | "success" | "error";
@@ -54,28 +55,30 @@ const captionSchema = z.string().trim().max(200, "Captions must be 200 character
 
 export async function uploadImages(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
   await requireAdmin();
-
-  const files = formData.getAll("files").filter((f): f is File => f instanceof File && f.size > 0);
   const captions = formData.getAll("captions").map(String);
   const category = categorySchema.safeParse(formData.get("category"));
 
-  if (files.length === 0) return { status: "error", message: "Choose at least one photo." };
-  if (files.length > MAX_FILES_PER_UPLOAD) {
-    return { status: "error", message: `Upload up to ${MAX_FILES_PER_UPLOAD} photos at a time.` };
+  let incoming: IncomingUpload;
+  try {
+    incoming = await readIncomingImages(formData);
+  } catch (error) {
+    return { status: "error", message: uploadErrorMessage(error, "gallery") };
   }
-  if (!category.success) return { status: "error", message: "Choose a category." };
 
+  const files = incoming.images;
   const saved: GalleryImage[] = [];
   try {
+    if (files.length === 0) return { status: "error", message: "Choose at least one photo." };
+    if (files.length > MAX_FILES_PER_UPLOAD) {
+      return { status: "error", message: `Upload up to ${MAX_FILES_PER_UPLOAD} photos at a time.` };
+    }
+    if (!category.success) return { status: "error", message: "Choose a category." };
+
     for (const [i, file] of files.entries()) {
       const caption = captionSchema.parse(captions[i] ?? "");
       const stored = await imageStorage.save(file);
       saved.push({
-        id: stored.id,
-        src: stored.src,
-        thumbSrc: stored.thumbSrc,
-        width: stored.width,
-        height: stored.height,
+        ...stored,
         caption,
         category: category.data as GalleryImage["category"],
         // Stagger timestamps so batch order is preserved when sorting newest-first.
@@ -84,14 +87,11 @@ export async function uploadImages(_prev: ActionResult, formData: FormData): Pro
     }
     await galleryRepo.addMany(saved);
   } catch (error) {
-    // Roll back any files written before the failure.
+    // Roll back any images written before the failure.
     await Promise.all(saved.map((s) => imageStorage.remove(s.id)));
-    if (error instanceof ImageValidationError || error instanceof z.ZodError) {
-      const message = error instanceof z.ZodError ? error.issues[0]?.message : error.message;
-      return { status: "error", message };
-    }
-    console.error("[gallery] upload failed", error);
-    return { status: "error", message: "Upload failed. Please try again." };
+    return { status: "error", message: uploadErrorMessage(error, "gallery") };
+  } finally {
+    await incoming.discard();
   }
 
   updateTag(GALLERY_TAG);

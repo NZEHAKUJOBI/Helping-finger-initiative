@@ -39,7 +39,10 @@ Open http://localhost:3000 — the admin area is at http://localhost:3000/admin.
 
 Images and the gallery index (`gallery.json`) are written to `STORAGE_DIR` (default `./storage`, git-ignored) and served by `/uploads/[file]`.
 
-**Production needs persistent disk.** Host on a VPS, Render (with a disk), Railway (with a volume) or Docker with a mounted volume, and point `STORAGE_DIR` at it. Serverless hosts such as Vercel have no persistent filesystem — on those, implement `ImageStorage` (e.g. Cloudinary/S3) and `GalleryRepository` (e.g. Postgres) and swap them in `src/lib/gallery/index.ts`.
+**Production needs persistent storage.** Either:
+
+- **Vercel** — connect a *private* Vercel Blob store (see [VERCEL.md](VERCEL.md)). When `BLOB_READ_WRITE_TOKEN` is set, images and data go to Blob automatically and photos upload straight from the browser to Blob (Vercel limits requests to 4.5 MB).
+- **A server with a disk** — VPS / Docker volume (see [DEPLOYMENT.md](DEPLOYMENT.md)), Render disk or Railway volume; point `STORAGE_DIR` at it.
 
 Back up `STORAGE_DIR` — it is the only copy of uploaded photos.
 
