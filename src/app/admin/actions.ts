@@ -8,6 +8,7 @@ import { GALLERY_CATEGORIES, type GalleryImage } from "@/domain/types";
 import { clearFailures, isLocked, recordFailure } from "@/lib/auth/rateLimit";
 import { checkPassword, createSession, destroySession, isAuthConfigured, requireAdmin } from "@/lib/auth/session";
 import { GALLERY_TAG, galleryRepo, imageStorage, ImageValidationError } from "@/lib/gallery";
+import { releaseImageIfUnused } from "@/lib/imageRefs";
 
 export interface ActionResult {
   status: "idle" | "success" | "error";
@@ -121,6 +122,7 @@ export async function deleteImage(formData: FormData) {
   if (!id.success) return;
 
   const removed = await galleryRepo.remove(id.data);
-  if (removed) await imageStorage.remove(removed.id);
+  // A newsletter may still show this photo; only delete the files when nothing uses them.
+  if (removed) await releaseImageIfUnused(removed.id);
   updateTag(GALLERY_TAG);
 }

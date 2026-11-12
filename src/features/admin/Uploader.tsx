@@ -19,7 +19,18 @@ interface Pending {
 
 const initial: ActionResult = { status: "idle" };
 
-export function Uploader() {
+type UploadAction = (prev: ActionResult, fd: FormData) => Promise<ActionResult>;
+
+interface UploaderProps {
+  /** Server action that receives `files` + `captions` and any other named fields in the form. */
+  action?: UploadAction;
+  /** Show the gallery category picker (and require a choice). */
+  withCategory?: boolean;
+  /** Extra form controls (hidden ids, checkboxes) sent with the upload. */
+  children?: React.ReactNode;
+}
+
+export function Uploader({ action = uploadImages, withCategory = true, children }: UploaderProps) {
   const inputId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const [items, setItems] = useState<Pending[]>([]);
@@ -34,7 +45,7 @@ export function Uploader() {
   };
 
   const [state, formAction, pending] = useActionState(async (prev: ActionResult, fd: FormData) => {
-    const result = await uploadImages(prev, fd);
+    const result = await action(prev, fd);
     if (result.status === "success") clear();
     return result;
   }, initial);
@@ -74,9 +85,9 @@ export function Uploader() {
   function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!items.length) return setClientError("Choose at least one photo.");
-    if (!category) return setClientError("Choose a category.");
-    const fd = new FormData();
-    fd.set("category", category);
+    if (withCategory && !category) return setClientError("Choose a category.");
+    // Named controls (category, hidden fields, checkboxes) come from the form itself.
+    const fd = new FormData(e.currentTarget as HTMLFormElement);
     for (const item of items) {
       fd.append("files", item.file);
       fd.append("captions", item.caption);
@@ -155,24 +166,28 @@ export function Uploader() {
       )}
 
       <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-end">
-        <div className="sm:w-64">
-          <label htmlFor={`${inputId}-cat`} className="mb-1.5 block text-sm font-semibold text-brand-900">
-            Category
-          </label>
-          <select
-            id={`${inputId}-cat`}
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="h-11 w-full rounded-xl border border-line bg-white px-3 text-sm focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-100"
-          >
-            <option value="">Select a category…</option>
-            {GALLERY_CATEGORIES.map((c) => (
-              <option key={c.value} value={c.value}>
-                {c.label}
-              </option>
-            ))}
-          </select>
-        </div>
+        {withCategory && (
+          <div className="sm:w-64">
+            <label htmlFor={`${inputId}-cat`} className="mb-1.5 block text-sm font-semibold text-brand-900">
+              Category
+            </label>
+            <select
+              id={`${inputId}-cat`}
+              name="category"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="h-11 w-full rounded-xl border border-line bg-white px-3 text-sm focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-100"
+            >
+              <option value="">Select a category…</option>
+              {GALLERY_CATEGORIES.map((c) => (
+                <option key={c.value} value={c.value}>
+                  {c.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+        {children}
         <Button type="submit" disabled={pending || items.length === 0}>
           <Icon name="upload" className="size-4" />
           {pending ? "Uploading…" : `Upload ${items.length || ""} photo${items.length === 1 ? "" : "s"}`}

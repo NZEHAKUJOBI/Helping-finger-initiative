@@ -10,11 +10,13 @@ import { ButtonLink } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { Eyebrow, Section, SectionHeading } from "@/components/ui/Section";
 import { GalleryBrowser } from "@/features/gallery/GalleryBrowser";
+import { NewsletterCard } from "@/features/newsletter/NewsletterCard";
 import { content } from "@/lib/content";
 import { getGalleryImages } from "@/lib/gallery";
+import { getPublishedNewsletters } from "@/lib/newsletter";
 
 export default async function HomePage() {
-  const [hero, welcome, programmes, approach, involvement, joinUs, about, beneficiaries, photos] = await Promise.all([
+  const [hero, welcome, programmes, approach, involvement, joinUs, about, beneficiaries, photos, news] = await Promise.all([
     content.getHero(),
     content.getWelcome(),
     content.getProgrammes(),
@@ -24,6 +26,7 @@ export default async function HomePage() {
     content.getAbout(),
     content.getBeneficiaries(),
     getGalleryImages(9),
+    getPublishedNewsletters(3),
   ]);
 
   const stats = [
@@ -77,6 +80,27 @@ export default async function HomePage() {
         <SectionHeading eyebrow="Our approach" title="Beyond relief — towards self-reliance" intro={approach.intro} invert />
         <ApproachSteps steps={approach.steps} />
       </Section>
+
+      {news.length > 0 && (
+        <Section tone="white">
+          <SectionHeading
+            eyebrow="Newsletter"
+            title="Latest from our work"
+            action={
+              <ButtonLink href="/newsletter" variant="outline">
+                All newsletters <Icon name="arrow-right" className="size-4" />
+              </ButtonLink>
+            }
+          />
+          <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {news.map((item) => (
+              <li key={item.id}>
+                <NewsletterCard item={item} />
+              </li>
+            ))}
+          </ul>
+        </Section>
+      )}
 
       {photos.length > 0 && (
         <Section tone="cream">

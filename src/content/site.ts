@@ -29,6 +29,7 @@ export const mainNav: NavItem[] = [
   { label: "About", href: "/about" },
   { label: "Programmes", href: "/programmes" },
   { label: "Who We Support", href: "/who-we-support" },
+  { label: "Newsletter", href: "/newsletter" },
   { label: "Gallery", href: "/gallery" },
   { label: "Get Involved", href: "/get-involved" },
   { label: "Contact", href: "/contact" },

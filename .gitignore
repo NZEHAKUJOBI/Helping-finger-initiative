@@ -44,3 +44,5 @@ next-env.d.ts
 
 # runtime uploads (gallery)
 /storage/
+!.env.production.example
+/backups/

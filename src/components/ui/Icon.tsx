@@ -68,6 +68,31 @@ const paths: Record<IconName, React.ReactNode> = {
       <path d="M3 7h3l3.5-1M3 15V7m0 8 3 0 5 5a1.4 1.4 0 0 0 2-2" />
     </>
   ),
+  calendar: (
+    <>
+      <rect x="3.5" y="5" width="17" height="15.5" rx="2" />
+      <path d="M3.5 10h17M8 3v4M16 3v4" />
+    </>
+  ),
+  news: (
+    <>
+      <path d="M5 4h12a1 1 0 0 1 1 1v14a1.5 1.5 0 0 0 3 0V9h-3" />
+      <path d="M19.5 20.5H5A1.5 1.5 0 0 1 3.5 19V5.5A1.5 1.5 0 0 1 5 4" />
+      <path d="M7 8h7M7 12h7M7 16h4" />
+    </>
+  ),
+  pencil: (
+    <>
+      <path d="M16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1 1-4Z" />
+      <path d="M14.5 6.5l3 3" />
+    </>
+  ),
+  eye: (
+    <>
+      <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" />
+      <circle cx="12" cy="12" r="3" />
+    </>
+  ),
   megaphone: (
     <>
       <path d="M3 10v4a1 1 0 0 0 1 1h3l9 5V4L7 9H4a1 1 0 0 0-1 1Z" />

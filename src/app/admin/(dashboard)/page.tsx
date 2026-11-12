@@ -5,16 +5,19 @@ import { Icon } from "@/components/ui/Icon";
 import { GALLERY_CATEGORIES } from "@/domain/types";
 import { requireAdmin } from "@/lib/auth/session";
 import { galleryRepo } from "@/lib/gallery";
+import { newsletterRepo } from "@/lib/newsletter";
 
 export const metadata: Metadata = { title: "Overview" };
 
 export default async function AdminOverviewPage() {
   await requireAdmin();
-  const images = await galleryRepo.list();
+  const [images, newsletters] = await Promise.all([galleryRepo.list(), newsletterRepo.list()]);
+  const published = newsletters.filter((n) => n.status === "published").length;
   const usedCategories = new Set(images.map((i) => i.category)).size;
   const latest = images[0]?.createdAt;
 
   const stats = [
+    { label: "Newsletters published", value: `${published}${newsletters.length > published ? ` (+${newsletters.length - published} draft)` : ""}` },
     { label: "Photos in gallery", value: images.length },
     { label: "Categories used", value: `${usedCategories} / ${GALLERY_CATEGORIES.length}` },
     {
@@ -32,12 +35,17 @@ export default async function AdminOverviewPage() {
           <p className="text-sm font-semibold text-brand-600">Welcome back</p>
           <h1 className="mt-1 text-4xl font-medium">Website overview</h1>
         </div>
-        <ButtonLink href="/admin/gallery" variant="accent">
-          <Icon name="upload" className="size-4" /> Upload photos
-        </ButtonLink>
+        <div className="flex flex-wrap gap-2">
+          <ButtonLink href="/admin/newsletters" variant="accent">
+            <Icon name="pencil" className="size-4" /> Write a newsletter
+          </ButtonLink>
+          <ButtonLink href="/admin/gallery" variant="outline">
+            <Icon name="upload" className="size-4" /> Upload photos
+          </ButtonLink>
+        </div>
       </header>
 
-      <dl className="mt-10 grid gap-4 sm:grid-cols-3">
+      <dl className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((s) => (
           <div key={s.label} className="rounded-card border border-line bg-white p-6">
             <dt className="text-sm text-muted">{s.label}</dt>

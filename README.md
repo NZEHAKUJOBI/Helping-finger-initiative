@@ -28,6 +28,13 @@ Open http://localhost:3000 — the admin area is at http://localhost:3000/admin.
 - Uploads are auto-rotated, resized (1920px full + 720px thumbnail, WebP) and stripped of EXIF data, including phone GPS location.
 - Photos appear immediately on `/gallery` and on the home page (hero collage + "Our work in pictures").
 
+## Newsletters
+
+- `/admin/newsletters` — start a newsletter with a title, then write the story (date, location, category, summary, body) and upload photos. Pick a cover photo; tick "Also add to the gallery" to show the photos on `/gallery` too.
+- Drafts stay private. **Publish** puts the issue on `/newsletter`, at `/newsletter/<slug>`, and in the "Latest from our work" section on the home page (newest three). **Unpublish** takes it down again.
+- The story is plain text: blank lines separate paragraphs, `## ` starts a heading, `- ` starts a bullet point. Nothing typed is rendered as HTML.
+- Issues are stored in `STORAGE_DIR/newsletters.json`. Photos share the gallery's image storage; a photo used by both the gallery and a newsletter is only deleted from disk once neither uses it.
+
 ### Where photos are stored
 
 Images and the gallery index (`gallery.json`) are written to `STORAGE_DIR` (default `./storage`, git-ignored) and served by `/uploads/[file]`.

@@ -1,0 +1,39 @@
+# Production stack for a single VPS: Next.js app + Caddy (automatic HTTPS).
+# Configuration comes from `.env` next to this file — copy `.env.production.example`.
+
+services:
+  app:
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_SITE_URL: https://${DOMAIN:?Set DOMAIN in .env}
+    image: helping-fingers:latest
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      STORAGE_DIR: /data
+    volumes:
+      - storage:/data # uploaded photos + gallery index — back this up
+    expose:
+      - "3000"
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      DOMAIN: ${DOMAIN}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  storage:
+  caddy_data:
+  caddy_config:

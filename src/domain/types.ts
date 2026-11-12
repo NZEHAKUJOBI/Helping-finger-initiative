@@ -28,7 +28,11 @@ export type IconName =
   | "close"
   | "chevron-left"
   | "chevron-right"
-  | "quote";
+  | "quote"
+  | "calendar"
+  | "news"
+  | "pencil"
+  | "eye";
 
 export interface ContactInfo {
   phones: string[];
@@ -130,6 +134,41 @@ export interface GalleryImage {
   width: number;
   height: number;
   createdAt: string;
+}
+
+/** A photo attached to a newsletter issue. Ids are shared with the gallery when "also add to gallery" is used. */
+export interface NewsletterPhoto {
+  id: string;
+  src: string;
+  thumbSrc: string;
+  width: number;
+  height: number;
+  caption: string;
+}
+
+export type NewsletterStatus = "draft" | "published";
+
+/** A newsletter issue: a write-up of an activity, with its photos. */
+export interface Newsletter {
+  id: string;
+  /** URL segment, set once at creation so shared links keep working. */
+  slug: string;
+  title: string;
+  /** One or two sentences shown on cards and the home page. */
+  summary: string;
+  /** Plain text. Blank lines separate paragraphs; "## " starts a heading; "- " starts a list item. */
+  body: string;
+  /** Date the activity took place (YYYY-MM-DD). */
+  eventDate: string;
+  location: string;
+  category: GalleryCategory;
+  /** Id of the photo used as the cover; falls back to the first photo. */
+  coverId: string | null;
+  photos: NewsletterPhoto[];
+  status: NewsletterStatus;
+  publishedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface AboutContent {
