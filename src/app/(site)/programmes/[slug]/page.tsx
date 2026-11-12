@@ -34,16 +34,18 @@ export default async function ProgrammePage({ params }: PageProps<"/programmes/[
       <PageHeader eyebrow={`Programme ${programme.letter}`} title={programme.title} intro={programme.summary} />
       <Section tone="white">
         <div className="grid gap-12 lg:grid-cols-[1.6fr_1fr]">
-          <div className="space-y-5 text-lg leading-relaxed">
-            {programme.details.map((p) => (
-              <p key={p}>{p}</p>
+          <div className="space-y-6 text-lg leading-relaxed text-ink/80">
+            {programme.details.map((p, i) => (
+              <p key={p} className={i === 0 ? "font-display text-2xl leading-snug text-brand-900 sm:text-3xl" : ""}>
+                {p}
+              </p>
             ))}
-            <Link href="/programmes" className="inline-flex items-center gap-2 font-semibold text-brand-700">
+            <Link href="/programmes" className="inline-flex items-center gap-2 pt-4 font-semibold text-brand-700">
               <Icon name="arrow-right" className="size-4 rotate-180" /> All programmes
             </Link>
           </div>
-          <aside aria-label="Other programmes" className="rounded-card bg-brand-50 p-6">
-            <h2 className="text-sm font-bold uppercase tracking-[0.14em] text-brand-600">Other programmes</h2>
+          <aside aria-label="Other programmes" className="self-start rounded-card bg-sand p-6">
+            <h2 className="font-sans text-xs font-bold uppercase tracking-[0.2em] text-brand-700">Other programmes</h2>
             <ul className="mt-4 space-y-1">
               {others.map((p) => (
                 <li key={p.slug}>

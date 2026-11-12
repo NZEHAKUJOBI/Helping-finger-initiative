@@ -1,17 +1,19 @@
-import { ButtonLink } from "@/components/ui/Button";
-import { Section } from "@/components/ui/Section";
+import Link from "next/link";
 
 export default function NotFound() {
   return (
-    <Section>
-      <div className="mx-auto max-w-xl py-10 text-center">
-        <p className="text-sm font-bold uppercase tracking-[0.14em] text-brand-600">404</p>
-        <h1 className="mt-3 text-4xl font-extrabold">Page not found</h1>
+    <main className="grain flex flex-1 items-center justify-center bg-cream px-4 py-24">
+      <div className="max-w-md text-center">
+        <p className="font-display text-7xl font-semibold text-brand-200">404</p>
+        <h1 className="mt-4 text-4xl font-semibold">This page has wandered off</h1>
         <p className="mt-4 text-lg text-muted">The page you are looking for doesn&apos;t exist or has moved.</p>
-        <ButtonLink href="/" className="mt-8">
+        <Link
+          href="/"
+          className="mt-8 inline-flex h-12 items-center rounded-full bg-brand-800 px-6 font-semibold text-white hover:bg-brand-900"
+        >
           Back to home
-        </ButtonLink>
+        </Link>
       </div>
-    </Section>
+    </main>
   );
 }

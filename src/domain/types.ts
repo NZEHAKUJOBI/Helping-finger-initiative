@@ -21,7 +21,14 @@ export type IconName =
   | "mail"
   | "map"
   | "arrow-right"
-  | "check";
+  | "check"
+  | "image"
+  | "upload"
+  | "trash"
+  | "close"
+  | "chevron-left"
+  | "chevron-right"
+  | "quote";
 
 export interface ContactInfo {
   phones: string[];
@@ -100,6 +107,29 @@ export interface InvolvementOption {
 export interface GovernanceBody {
   title: string;
   description: string;
+}
+
+export const GALLERY_CATEGORIES = [
+  { value: "relief", label: "Relief & Outreach" },
+  { value: "empowerment", label: "Empowerment" },
+  { value: "education", label: "Education" },
+  { value: "health", label: "Health" },
+  { value: "community", label: "Community" },
+  { value: "events", label: "Events" },
+] as const;
+
+export type GalleryCategory = (typeof GALLERY_CATEGORIES)[number]["value"];
+
+export interface GalleryImage {
+  id: string;
+  caption: string;
+  category: GalleryCategory;
+  /** Public URLs served by the storage adapter. */
+  src: string;
+  thumbSrc: string;
+  width: number;
+  height: number;
+  createdAt: string;
 }
 
 export interface AboutContent {

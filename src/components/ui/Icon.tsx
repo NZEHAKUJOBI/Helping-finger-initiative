@@ -98,6 +98,31 @@ const paths: Record<IconName, React.ReactNode> = {
   ),
   "arrow-right": <path d="M5 12h14m-6-6 6 6-6 6" />,
   check: <path d="m5 12.5 4.5 4.5L19 7.5" />,
+  image: (
+    <>
+      <rect x="3" y="4" width="18" height="16" rx="2.5" />
+      <circle cx="9" cy="9.5" r="1.75" />
+      <path d="m21 16-5-5-9 9" />
+    </>
+  ),
+  upload: (
+    <>
+      <path d="M12 16V4m-5 5 5-5 5 5" />
+      <path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
+    </>
+  ),
+  trash: (
+    <>
+      <path d="M4 7h16M9 7V4.5h6V7" />
+      <path d="M6 7l1 13h10l1-13M10 11v5M14 11v5" />
+    </>
+  ),
+  close: <path d="M6 6l12 12M18 6 6 18" />,
+  "chevron-left": <path d="m15 5-7 7 7 7" />,
+  "chevron-right": <path d="m9 5 7 7-7 7" />,
+  quote: (
+    <path d="M9.5 6C6.5 7 4.5 9.5 4.5 13v5h6v-6h-3c0-2.3 1-3.8 3-4.6L9.5 6Zm10 0c-3 1-5 3.5-5 7v5h6v-6h-3c0-2.3 1-3.8 3-4.6L19.5 6Z" />
+  ),
 };
 
 interface IconProps {

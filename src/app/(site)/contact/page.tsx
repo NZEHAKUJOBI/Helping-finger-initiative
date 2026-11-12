@@ -59,7 +59,7 @@ export default async function ContactPage() {
             </Card>
           </div>
           <Card>
-            <h2 className="mb-6 text-2xl font-extrabold">Send us a message</h2>
+            <h2 className="mb-6 text-2xl font-medium">Send us a message</h2>
             <ContactForm />
           </Card>
         </div>

@@ -23,7 +23,7 @@ export default async function PartnerPage() {
       <Section>
         <div className="grid gap-10 lg:grid-cols-[1fr_1.5fr]">
           <div>
-            <h2 className="text-2xl font-extrabold">We welcome partnerships with</h2>
+            <h2 className="text-2xl font-medium">We welcome partnerships with</h2>
             <ul className="mt-6 space-y-3">
               {partnerTypes.map((t) => (
                 <li key={t} className="flex gap-3">
@@ -34,7 +34,7 @@ export default async function PartnerPage() {
             </ul>
           </div>
           <Card>
-            <h2 className="mb-6 text-2xl font-extrabold">Start a conversation</h2>
+            <h2 className="mb-6 text-2xl font-medium">Start a conversation</h2>
             <PartnerForm />
           </Card>
         </div>

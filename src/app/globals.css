@@ -1,59 +1,103 @@
 @import "tailwindcss";
 
 /*
- * Design tokens — taken from the official letterhead and logo.
- * Use the semantic names (brand, accent, ink) in components, never raw hex values.
+ * Design tokens — brand colours from the official letterhead and logo.
+ * Components use semantic names (brand, accent, ink, cream), never raw hex.
  */
 @theme {
-  --color-brand-50: #eefaf0;
-  --color-brand-100: #d5f2da;
-  --color-brand-200: #a9e4b4;
+  --color-brand-50: #eef8f0;
+  --color-brand-100: #d7efdc;
+  --color-brand-200: #acdeb7;
+  --color-brand-300: #7cc98d;
   --color-brand-500: #2db34a; /* letterhead green */
-  --color-brand-600: #23963c;
-  --color-brand-700: #1e6b2e; /* tagline green */
-  --color-brand-900: #14351f; /* heading dark green */
+  --color-brand-600: #22943b;
+  --color-brand-700: #1b6b2e; /* tagline green */
+  --color-brand-800: #15502a;
+  --color-brand-900: #10301c; /* heading green */
+  --color-brand-950: #0a1f12;
 
-  --color-accent-100: #fdf3cf;
+  --color-accent-50: #fffaeb;
+  --color-accent-100: #fdf0c4;
+  --color-accent-300: #f9d65e;
   --color-accent-400: #f5c21b; /* letterhead yellow */
-  --color-accent-500: #e0ab06;
+  --color-accent-500: #dfa900;
 
-  --color-alert-500: #e11d2a; /* logo red frame — use sparingly */
+  --color-alert-500: #d61f2c; /* logo red frame — errors and tiny details only */
 
-  --color-ink: #1c2420;
-  --color-muted: #5b6660;
-  --color-line: #e3e8e4;
+  --color-ink: #17251d;
+  --color-muted: #56645b;
+  --color-line: #e6e1d4;
+  --color-cream: #fbf7ee;
+  --color-sand: #f3ecdc;
   --color-surface: #ffffff;
-  --color-canvas: #f7f9f6;
 
-  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Fraunces Variable", ui-serif, Georgia, serif;
 
-  --radius-card: 1rem;
+  --radius-card: 1.25rem;
+  --radius-arch: 999px 999px 1.25rem 1.25rem;
+
+  --shadow-soft: 0 1px 2px rgb(16 48 28 / 0.04), 0 8px 24px -8px rgb(16 48 28 / 0.12);
+  --shadow-lift: 0 2px 4px rgb(16 48 28 / 0.05), 0 24px 48px -16px rgb(16 48 28 / 0.25);
+
+  --animate-rise: rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 }
 
 @layer base {
   html {
     scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
   }
   body {
-    background: var(--color-canvas);
+    background: var(--color-cream);
     color: var(--color-ink);
     font-family: var(--font-sans);
+    font-feature-settings: "ss01";
   }
   h1,
   h2,
-  h3,
+  h3 {
+    font-family: var(--font-display);
+    font-variation-settings: "SOFT" 50, "WONK" 0;
+    color: var(--color-brand-900);
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
   h4 {
     color: var(--color-brand-900);
-    letter-spacing: -0.015em;
-    text-wrap: balance;
   }
   p {
     text-wrap: pretty;
   }
+  ::selection {
+    background: var(--color-accent-300);
+    color: var(--color-brand-950);
+  }
   :focus-visible {
     outline: 3px solid var(--color-accent-400);
-    outline-offset: 2px;
+    outline-offset: 3px;
+    border-radius: 6px;
   }
+}
+
+@utility font-display {
+  font-family: var(--font-display);
+  font-variation-settings: "SOFT" 50, "WONK" 0;
+}
+
+/* Subtle paper grain used on cream and green panels */
+@utility grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 @media (prefers-reduced-motion: reduce) {

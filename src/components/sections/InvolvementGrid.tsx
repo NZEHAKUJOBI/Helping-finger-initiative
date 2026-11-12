@@ -1,26 +1,44 @@
+import Link from "next/link";
 import type { InvolvementOption } from "@/domain/types";
-import { ButtonLink } from "@/components/ui/Button";
-import { Card, IconBadge } from "@/components/ui/Card";
+import { Icon } from "@/components/ui/Icon";
+import { cn } from "@/lib/cn";
 
 export function InvolvementGrid({ options }: { options: InvolvementOption[] }) {
   return (
-    <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-      {options.map((o) => (
-        <li key={o.kind}>
-          <Card className="flex h-full flex-col">
-            <IconBadge icon={o.icon} tone={o.kind === "donate" ? "accent" : "brand"} />
-            <h3 className="mt-4 text-lg font-bold">{o.title}</h3>
-            <p className="mt-2 flex-1 text-sm leading-relaxed text-muted">{o.description}</p>
-            <ButtonLink
+    <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {options.map((o) => {
+        const primary = o.kind === "donate";
+        return (
+          <li key={o.kind}>
+            <Link
               href={o.href}
-              variant={o.kind === "donate" ? "accent" : "outline"}
-              className="mt-6 self-start"
+              className={cn(
+                "group flex h-full flex-col rounded-card p-7 transition duration-300 hover:-translate-y-1",
+                primary
+                  ? "bg-accent-400 text-brand-950 shadow-lift"
+                  : "border border-line bg-white shadow-soft hover:shadow-lift",
+              )}
             >
-              {o.cta}
-            </ButtonLink>
-          </Card>
-        </li>
-      ))}
+              <span
+                className={cn(
+                  "inline-flex size-12 items-center justify-center rounded-2xl",
+                  primary ? "bg-white/60 text-brand-900" : "bg-brand-50 text-brand-700",
+                )}
+              >
+                <Icon name={o.icon} />
+              </span>
+              <h3 className="mt-6 text-2xl font-medium">{o.title}</h3>
+              <p className={cn("mt-2 flex-1 text-[15px] leading-relaxed", primary ? "text-brand-950/75" : "text-muted")}>
+                {o.description}
+              </p>
+              <span className="mt-6 inline-flex items-center gap-2 text-sm font-bold">
+                {o.cta}
+                <Icon name="arrow-right" className="size-4 transition-transform group-hover:translate-x-1" />
+              </span>
+            </Link>
+          </li>
+        );
+      })}
     </ul>
   );
 }
